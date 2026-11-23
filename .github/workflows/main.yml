@@ -16,37 +16,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 下载仓库内容
+      # 1. 获取仓库代码
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. 解压安卓项目
+      # 2. 解压项目 ZIP
       - name: Extract project
         run: |
           mkdir -p build-src
           unzip -q StudyFlow-Cloud-Build.zip -d build-src
 
-      # 3. 自动查找真正的安卓项目目录
+      # 3. 查找 Android 项目
       - name: Find Android project
         run: |
           PROJECT_FILE=$(find build-src -name settings.gradle.kts -print -quit)
 
           if [ -z "$PROJECT_FILE" ]; then
             echo "ERROR: settings.gradle.kts not found"
-            find build-src -maxdepth 4 -type f
+            find build-src -maxdepth 5 -type f
             exit 1
           fi
 
           PROJECT_DIR=$(dirname "$PROJECT_FILE")
 
           if [ ! -d "$PROJECT_DIR/app" ]; then
-            echo "ERROR: app directory not found in $PROJECT_DIR"
-            find "$PROJECT_DIR" -maxdepth 3 -type f
+            echo "ERROR: app directory not found"
             exit 1
           fi
 
           echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
-          echo "Android project: $PROJECT_DIR"
+          echo "Found project: $PROJECT_DIR"
 
       # 4. 安装 Java 17
       - name: Setup Java
@@ -61,7 +60,7 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      # 6. 自动修复 Java / Kotlin JVM 版本
+      # 6. 修复 Java 和 Kotlin JVM 版本
       - name: Fix JVM target
         run: |
           python3 - <<'PY'
@@ -116,15 +115,40 @@ jobs:
               )
 
           gradle_file.write_text(content, encoding="utf-8")
-          print("Java and Kotlin JVM target set to 17")
+          print("JVM target fixed to 17")
           PY
 
-      # 7. 编译 APK
+      # 7. 修复 Material3 实验性 API
+      - name: Fix Material3 Experimental API
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          project = Path(os.environ["PROJECT_DIR"])
+          source = project / "app/src/main/java/com/example/studyflow/MainActivity.kt"
+
+          content = source.read_text(encoding="utf-8")
+
+          annotation = (
+              "@file:OptIn("
+              "androidx.compose.material3.ExperimentalMaterial3Api::class"
+              ")"
+          )
+
+          if annotation not in content:
+              content = annotation + "\n" + content
+              source.write_text(content, encoding="utf-8")
+
+          print("Material3 API opt-in added")
+          PY
+
+      # 8. 编译 APK
       - name: Build APK
         run: |
           gradle -p "$PROJECT_DIR" --no-daemon :app:assembleDebug
 
-      # 8. 上传 APK
+      # 9. 上传 APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
