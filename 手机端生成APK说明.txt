@@ -1,0 +1,33 @@
+StudyFlow：手机端生成 APK（无需安装 Android Studio）
+
+你只需要用手机浏览器操作，GitHub 会在云端编译 APK。
+
+一、创建 GitHub 仓库
+1. 打开 https://github.com 并登录/注册账号。
+2. 点击右上角 +，选择 New repository。
+3. 仓库名填写 StudyFlow，选择 Public（公开）或 Private（私有）均可。
+4. 点击 Create repository。
+
+二、上传项目文件
+1. 进入新仓库页面，点 Add file -> Upload files。
+2. 解压你下载的 StudyFlow-Cloud-Build.zip。
+3. 上传解压后 StudyFlow 文件夹里的全部内容。注意：要上传 app、.github、build.gradle.kts、settings.gradle.kts 等项目内容本身，不要只上传外层文件夹。
+4. 页面下方点 Commit changes。
+
+三、等待云端编译
+1. 在仓库顶部打开 Actions。
+2. 选择 Build StudyFlow APK 工作流。
+3. 如果没有自动开始，点 Run workflow -> Run workflow。
+4. 等待任务变成绿色成功（通常需要几分钟；首次下载依赖可能更久）。
+
+四、下载 APK
+1. 点开成功的那次运行记录。
+2. 页面下方 Artifacts 区域，点击 StudyFlow-debug-apk 下载 ZIP。
+3. 在手机文件管理器中解压 ZIP，得到 app-debug.apk。
+4. 点击 APK 安装。若 Android 提示限制，请只对你使用的浏览器/文件管理器临时允许“安装未知应用”，安装后可关闭。
+
+说明
+- 这是 debug APK，适合个人测试，不是上架应用商店的正式签名包。
+- Android 最低版本为 Android 8.0（API 26）。
+- GitHub Actions 免费额度受账号与仓库使用情况限制。
+- 上传到公开仓库意味着源码对所有人可见；不想公开源码就创建 Private 仓库。
